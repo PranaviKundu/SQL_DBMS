@@ -425,3 +425,289 @@ Rows matched: 0  Changed: 0  Warnings: 0
   SELECT title
 ->FROM Movie
 ->WHERE title LIKE 'K%';
+
+
+mysql> SELECT a.*
+    -> FROM Actor a
+    -> JOIN Cast c ON a.a_id = c.a_id
+    -> JOIN Movie m ON c.m_id = m.m_id
+    -> WHERE m.title IN ('Dangal', 'War', 'PK');
++------+--------+--------+------+
+| a_id | f_name | l_name | Pay  |
++------+--------+--------+------+
+|  512 | Priya  | Kumari | NULL |
+|  567 | Rohan  | Dhaiya | NULL |
+|  505 | Ria    | Sharma | NULL |
++------+--------+--------+------+
+3 rows in set (0.00 sec)
+
+mysql> SELECT AVG(c.pay) AS average_pay
+    -> FROM Cast c
+    -> JOIN Movie m ON c.m_id = m.m_id
+    -> WHERE m.title = 'Airlift';
+ERROR 1054 (42S22): Unknown column 'c.pay' in 'field list'
+mysql> SELECT AVG(c.Pay) AS average_pay
+    -> FROM Cast c
+    -> JOIN Movie m ON c.m_id = m.m_id
+    -> WHERE m.title = 'Airlift';
+ERROR 1054 (42S22): Unknown column 'c.Pay' in 'field list'
+mysql> SELECT COUNT(DISTINCT c.a_id) AS total_actors
+    -> FROM Cast c
+    -> JOIN Movie m ON c.m_id = m.m_id
+    -> WHERE m.title = 'Lagaan';
++--------------+
+| total_actors |
++--------------+
+|            0 |
++--------------+
+1 row in set (0.00 sec)
+
+mysql> UPDATE Actor SET Pay = 75000 WHERE a_id = 505;
+UPDATE Actor SET Pay = 60000 WHERE a_id = 509;
+UPDATE Actor SET Pay = 45000 WHERE a_id = 512;
+UPDATE Actor SET Pay = 55000 WHERE a_id = 530;
+UPDATE Actor SET Pay = 70000 WHERE a_id = 567;
+UPDATE Actor SET Pay = 75000 WHERE a_id = 505;
+^C
+mysql> UPDATE Actor SET Pay = 60000 WHERE a_id = 509;
+Query OK, 1 row affected (0.05 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+
+mysql> UPDATE Actor SET Pay = 45000 WHERE a_id = 512;
+Query OK, 1 row affected (0.08 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+
+mysql> UPDATE Actor SET Pay = 55000 WHERE a_id = 530;
+Query OK, 1 row affected (0.07 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+
+mysql> UPDATE Actor SET Pay = 70000 WHERE a_id = 567;
+Query OK, 1 row affected (0.08 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+
+mysql> SELECT * FROM Actor;
++------+--------+--------+-------+
+| a_id | f_name | l_name | Pay   |
++------+--------+--------+-------+
+|  505 | Ria    | Sharma |  NULL |
+|  509 | Mohan  | Kumar  | 60000 |
+|  512 | Priya  | Kumari | 45000 |
+|  530 | Jagar  | Saini  | 55000 |
+|  567 | Rohan  | Dhaiya | 70000 |
++------+--------+--------+-------+
+5 rows in set (0.00 sec)
+
+mysql> UPDATE Actor SET Pay = 75000 WHERE a_id = 505;
+Query OK, 1 row affected (0.06 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+
+mysql> Select f_name, l_name from Actor a
+    -> where ^C
+
+^C
+mysql> select * from Actor a
+    -> join ^C
+
+^C
+mysql> SELECT MAX(a.Pay) AS max_pay, MIN(a.Pay) AS min_pay
+    -> FROM Actor a
+    -> JOIN Cast c ON a.a_id = c.a_id
+    -> JOIN Movie m ON c.m_id = m.m_id
+    -> WHERE m.title = 'PK';
++---------+---------+
+| max_pay | min_pay |
++---------+---------+
+|   75000 |   75000 |
++---------+---------+
+1 row in set (0.00 sec)
+
+mysql> SELECT SUM(a.Pay) AS total_salaries
+    -> FROM Actor a
+    -> JOIN Cast c ON a.a_id = c.a_id
+    -> JOIN Movie m ON c.m_id = m.m_id
+    -> WHERE m.title = 'War';
++----------------+
+| total_salaries |
++----------------+
+|          70000 |
++----------------+
+1 row in set (0.00 sec)
+
+mysql> SELECT *
+    -> FROM Movie
+    -> ORDER BY title ASC, release_date DESC;
++------+-------------+--------------+-------+
+| m_id | title       | release_date | rank1 |
++------+-------------+--------------+-------+
+| 1321 | Airlift     | 2005-09-12   | A     |
+| 1007 | Dangal      | 2012-06-22   | B     |
+| 2001 | Kabir Singh | 2019-06-21   | NULL  |
+| 1231 | Laagan      | 1887-12-30   | A     |
+| 1987 | PK          | 2005-11-12   | A     |
+| 1056 | Ram_Lakhan  | 1997-11-12   | B     |
+| 1001 | Sholay      | 1975-08-15   | A     |
+| 1345 | War         | 2015-08-24   | B     |
++------+-------------+--------------+-------+
+8 rows in set (0.00 sec)
+
+mysql> SELECT a.f_name, a.l_name
+    -> FROM Actor a
+    -> JOIN Cast c ON a.a_id = c.a_id
+    -> JOIN Movie m ON c.m_id = m.m_id
+    -> WHERE m.title = 'Lagaan'
+    -> 
+    -> UNION
+    -> 
+    -> SELECT a.f_name, a.l_name
+    -> FROM Actor a
+    -> JOIN Cast c ON a.a_id = c.a_id
+    -> JOIN Movie m ON c.m_id = m.m_id
+    -> WHERE m.title = 'Sholay';
++--------+--------+
+| f_name | l_name |
++--------+--------+
+| Ria    | Sharma |
+| Mohan  | Kumar  |
++--------+--------+
+2 rows in set (0.00 sec)
+
+mysql> SELECT a.f_name, a.l_name
+    -> FROM Actor a
+    -> JOIN Cast c ON a.a_id = c.a_id
+    -> JOIN Movie m ON c.m_id = m.m_id
+    -> WHERE m.title = 'PK'
+    -> 
+    -> UNION ALL
+    -> 
+    -> SELECT a.f_name, a.l_name
+    -> FROM Actor a
+    -> JOIN Cast c ON a.a_id = c.a_id
+    -> JOIN Movie m ON c.m_id = m.m_id
+    -> WHERE m.title = 'War';
++--------+--------+
+| f_name | l_name |
++--------+--------+
+| Ria    | Sharma |
+| Rohan  | Dhaiya |
++--------+--------+
+2 rows in set (0.00 sec)
+
+mysql> SELECT a.f_name, a.l_name
+    ->     -> FROM Actor a
+    ->     -> JOIN Cast c ON a.a_id = c.a_id
+    ->     -> JOIN Movie m ON c.m_id = m.m_id
+    ->     -> WHERE m.title = 'PK'
+    ->     -> 
+    ->     -> UNION ALL
+    ->     -> 
+    ->     -> SELECT a.f_name, a.l_name
+    ->     -> FROM Actor a
+    ->     -> JOIN Cast c ON a.a_id = c.a_id
+    ->     -> JOIN Movie m ON c.m_id = m.m_^C
+
+^C
+mysql> SELECT DISTINCT c1.a_id
+    -> FROM Cast c1
+    -> JOIN Movie m1 ON c1.m_id = m1.m_id
+    -> WHERE m1.title = 'Lagaan'
+    -> AND c1.a_id IN (
+    ->     SELECT c2.a_id
+    ->     FROM Cast c2
+    ->     JOIN Movie m2 ON c2.m_id = m2.m_id
+    ->     WHERE m2.title = 'PK'
+    -> );
+Empty set (0.01 sec)
+
+mysql> SELECT a.a_id, a.f_name, a.l_name
+    -> FROM Actor a
+    -> JOIN Cast c ON a.a_id = c.a_id
+    -> JOIN Movie m ON c.m_id = m.m_id
+    -> WHERE m.title = 'Lagaan';
+Empty set (0.00 sec)
+
+mysql> SELECT a.a_id, a.f_name, a.l_name
+    -> FROM Actor a
+    -> JOIN Cast c ON a.a_id = c.a_id
+    -> JOIN Movie m ON c.m_id = m.m_id
+    -> WHERE m.title = 'PK';
++------+--------+--------+
+| a_id | f_name | l_name |
++------+--------+--------+
+|  505 | Ria    | Sharma |
++------+--------+--------+
+1 row in set (0.00 sec)
+
+mysql> SELECT a_id FROM Actor WHERE f_name = 'Ria' AND l_name = 'Sharma';
++------+
+| a_id |
++------+
+|  505 |
++------+
+1 row in set (0.00 sec)
+
+mysql> SELECT m_id FROM Movie WHERE title = 'Lagaan';
+Empty set (0.00 sec)
+
+mysql> INSERT INTO Cast (m_id, a_id, pay)
+    -> VALUES (101, 505, 75000);
+ERROR 1054 (42S22): Unknown column 'pay' in 'field list'
+mysql> INSERT INTO Cast (m_id, a_id, Pay)
+    -> VALUES (101, 505, 88500);
+ERROR 1054 (42S22): Unknown column 'Pay' in 'field list'
+mysql> INSERT INTO Cast (m_id, a_id, pay)
+    -> VALUES (101, 505, 75000);
+ERROR 1054 (42S22): Unknown column 'pay' in 'field list'
+mysql> DESCRIBE Cast;
++-------+--------------+------+-----+---------+-------+
+| Field | Type         | Null | Key | Default | Extra |
++-------+--------------+------+-----+---------+-------+
+| m_id  | int          | NO   | PRI | NULL    |       |
+| a_id  | int          | NO   | PRI | NULL    |       |
+| role  | varchar(100) | YES  | MUL | NULL    |       |
++-------+--------------+------+-----+---------+-------+
+3 rows in set (0.01 sec)
+
+mysql> ALTER TABLE Cast
+    -> ADD COLUMN pay DECIMAL(10, 2);
+Query OK, 0 rows affected (0.28 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql> INSERT INTO Cast (m_id, a_id)
+    -> VALUES (101, 505);
+ERROR 1452 (23000): Cannot add or update a child row: a foreign key constraint fails (`movie`.`Cast`, CONSTRAINT `Cast_ibfk_1` FOREIGN KEY (`m_id`) REFERENCES `Movie` (`m_id`))
+mysql> 
+
+mysql> SELECT DISTINCT c1.a_id
+    -> FROM Cast c1
+    -> JOIN Movie m1 ON c1.m_id = m1.m_id
+    -> WHERE m1.title = 'Dangal'
+    -> AND c1.a_id NOT IN (
+    ->     SELECT c2.a_id
+    ->     FROM Cast c2
+    ->     JOIN Movie m2 ON c2.m_id = m2.m_id
+    ->     WHERE m2.title = 'War'
+    -> );
++------+
+| a_id |
++------+
+|  512 |
++------+
+1 row in set (0.00 sec)
+
+mysql> SELECT DISTINCT a.a_id, a.f_name, a.l_name
+    -> FROM Actor a
+    -> JOIN Cast c ON a.a_id = c.a_id
+    -> JOIN Movie m ON c.m_id = m.m_id
+    -> WHERE m.title = 'Dangal'
+    -> AND a.a_id NOT IN (
+    ->     SELECT c2.a_id
+    ->     FROM Cast c2
+    ->     JOIN Movie m2 ON c2.m_id = m2.m_id
+    ->     WHERE m2.title = 'War'
+    -> );
++------+--------+--------+
+| a_id | f_name | l_name |
++------+--------+--------+
+|  512 | Priya  | Kumari |
++------+--------+--------+
+1 row in set (0.00 sec)
