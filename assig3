@@ -1,0 +1,541 @@
+mysql> show databases;
++--------------------+
+| Database           |
++--------------------+
+| 1322_stud          |
+| assg1              |
+| assg2              |
+| bank               |
+| customer           |
+| db1                |
+| employee           |
+| employee_          |
+| information_schema |
+| library            |
+| movie              |
+| mysql              |
+| new_database_name  |
+| performance_schema |
+| student            |
+| studentdb          |
+| sys                |
++--------------------+
+17 rows in set (0.05 sec)
+
+mysql> use movie;
+Reading table information for completion of table and column names
+You can turn off this feature to get a quicker startup with -A
+
+Database changed
+mysql> select * Actor;
+ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'Actor' at line 1
+mysql> select * from Actor;
++------+--------+--------+-------+
+| a_id | f_name | l_name | Pay   |
++------+--------+--------+-------+
+|  505 | Ria    | Sharma | 75000 |
+|  509 | Mohan  | Kumar  | 60000 |
+|  512 | Priya  | Kumari | 45000 |
+|  530 | Jagar  | Saini  | 55000 |
+|  567 | Rohan  | Dhaiya | 70000 |
++------+--------+--------+-------+
+5 rows in set (0.03 sec)
+
+mysql> select * from Cast;
++------+------+------------+------+
+| m_id | a_id | role       | pay  |
++------+------+------------+------+
+| 1001 |  505 | Lead       | NULL |
+| 1001 |  509 | Supporting | NULL |
+| 1007 |  512 | Lead       | NULL |
+| 1056 |  509 | Lead       | NULL |
+| 1231 |  512 | Supporting | NULL |
+| 1345 |  567 | Lead       | NULL |
+| 1987 |  505 | Guest      | NULL |
++------+------+------------+------+
+7 rows in set (0.01 sec)
+
+mysql> select * from Movie;
++------+-------------+--------------+-------+
+| m_id | title       | release_date | rank1 |
++------+-------------+--------------+-------+
+| 1001 | Sholay      | 1975-08-15   | A     |
+| 1007 | Dangal      | 2012-06-22   | B     |
+| 1056 | Ram_Lakhan  | 1997-11-12   | B     |
+| 1231 | Laagan      | 1887-12-30   | A     |
+| 1321 | Airlift     | 2005-09-12   | A     |
+| 1345 | War         | 2015-08-24   | B     |
+| 1987 | PK          | 2005-11-12   | A     |
+| 2001 | Kabir Singh | 2019-06-21   | NULL  |
++------+-------------+--------------+-------+
+8 rows in set (0.02 sec)
+
+mysql> select * from Director;
++------+-------+---------+--------+
+| d_id | fname | lname   | gender |
++------+-------+---------+--------+
+|  100 | Fahad | Khan    | M      |
+|  101 | Sahil | Sharma  | M      |
+|  102 | Kia   | Raina   | F      |
+|  103 | Jyoti | Bhadwai | F      |
+|  104 | Kran  | Kumar   | M      |
+|  105 | Sham  | Bajpai  | M      |
++------+-------+---------+--------+
+6 rows in set (0.02 sec)
+
+mysql> select f_name, l_name
+    -> ^C
+mysql> select a_id, f_name, l_name
+    -> from Actor a
+    -> join Cast c where Cast a_id = Actor a_id
+    -> join Movie where Movie m_id = Cast m_id
+    -> where m_id = 101;
+ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'a_id = Actor a_id
+join Movie where Movie m_id = Cast m_id
+where m_id = 101' at line 3
+mysql> select * from Direct;
++------+------+
+| m_id | d_id |
++------+------+
+| 1001 |  100 |
+| 1345 |  100 |
+| 1007 |  101 |
+| 1056 |  102 |
+| 1987 |  103 |
+| 1231 |  104 |
++------+------+
+6 rows in set (0.01 sec)
+
+mysql> select * from Cast;
++------+------+------------+------+
+| m_id | a_id | role       | pay  |
++------+------+------------+------+
+| 1001 |  505 | Lead       | NULL |
+| 1001 |  509 | Supporting | NULL |
+| 1007 |  512 | Lead       | NULL |
+| 1056 |  509 | Lead       | NULL |
+| 1231 |  512 | Supporting | NULL |
+| 1345 |  567 | Lead       | NULL |
+| 1987 |  505 | Guest      | NULL |
++------+------+------------+------+
+7 rows in set (0.00 sec)
+
+mysql> SELECT A.*
+    -> FROM Actor A
+    -> JOIN Cast C ON A.a_id = C.a_id
+    -> JOIN Movie M ON C.m_id = M.m_id
+    -> WHERE M.title IN ('Sholay', 'PK');
++------+--------+--------+-------+
+| a_id | f_name | l_name | Pay   |
++------+--------+--------+-------+
+|  505 | Ria    | Sharma | 75000 |
+|  509 | Mohan  | Kumar  | 60000 |
+|  505 | Ria    | Sharma | 75000 |
++------+--------+--------+-------+
+3 rows in set (0.00 sec)
+
+mysql> select M.title, D.f_name as Director_f_name, D.l_name as Director_l_name
+    -> from Movie M
+    -> join Direct Di on M.m_id = Di.m_id
+    -> join Director D on Di.d_id = D.d_id
+    -> order by M.rank1 asc
+    -> LIMIT 5;
+ERROR 1054 (42S22): Unknown column 'D.f_name' in 'field list'
+mysql> SELECT M.title, D.fname AS Director_f_name, D.lname AS Director_l_name
+    -> FROM Movie M
+    -> JOIN Direct Di ON M.m_id = Di.m_id
+    -> JOIN Director D ON Di.d_id = D.d_id
+    -> ORDER BY M.rank1 ASC
+    -> LIMIT 5;
++------------+-----------------+-----------------+
+| title      | Director_f_name | Director_l_name |
++------------+-----------------+-----------------+
+| Sholay     | Fahad           | Khan            |
+| Laagan     | Kran            | Kumar           |
+| PK         | Jyoti           | Bhadwai         |
+| Dangal     | Sahil           | Sharma          |
+| Ram_Lakhan | Kia             | Raina           |
++------------+-----------------+-----------------+
+5 rows in set (0.00 sec)
+
+mysql> SELECT M.title, COUNT(C.a_id) AS total_actors
+    -> FROM Movie M
+    -> JOIN Cast C ON M.m_id = C.m_id
+    -> GROUP BY M.m_id, M.title;
++------------+--------------+
+| title      | total_actors |
++------------+--------------+
+| Sholay     |            2 |
+| PK         |            1 |
+| Ram_Lakhan |            1 |
+| Dangal     |            1 |
+| Laagan     |            1 |
+| War        |            1 |
++------------+--------------+
+6 rows in set (0.01 sec)
+
+mysql> SELECT C.role
+    -> FROM Cast C
+    -> WHERE C.pay > 200000;
+Empty set (0.00 sec)
+
+mysql> select * from Cast;
++------+------+------------+------+
+| m_id | a_id | role       | pay  |
++------+------+------------+------+
+| 1001 |  505 | Lead       | NULL |
+| 1001 |  509 | Supporting | NULL |
+| 1007 |  512 | Lead       | NULL |
+| 1056 |  509 | Lead       | NULL |
+| 1231 |  512 | Supporting | NULL |
+| 1345 |  567 | Lead       | NULL |
+| 1987 |  505 | Guest      | NULL |
++------+------+------------+------+
+7 rows in set (0.00 sec)
+
+mysql> UPDATE Cast C
+    -> JOIN Actor A ON C.a_id = A.a_id
+    -> SET C.pay = A.salary;
+ERROR 1054 (42S22): Unknown column 'A.salary' in 'field list'
+mysql> update Cast c
+    -> join Actor A on c.a_id = A.a_id
+    -> set c.pay = A.Pay;
+Query OK, 7 rows affected (0.08 sec)
+Rows matched: 7  Changed: 7  Warnings: 0
+
+mysql> SELECT C.role
+    -> FROM Cast C
+    -> WHERE C.pay > 200000;
+Empty set (0.00 sec)
+
+mysql> select * from Cast;
++------+------+------------+----------+
+| m_id | a_id | role       | pay      |
++------+------+------------+----------+
+| 1001 |  505 | Lead       | 75000.00 |
+| 1001 |  509 | Supporting | 60000.00 |
+| 1007 |  512 | Lead       | 45000.00 |
+| 1056 |  509 | Lead       | 60000.00 |
+| 1231 |  512 | Supporting | 45000.00 |
+| 1345 |  567 | Lead       | 70000.00 |
+| 1987 |  505 | Guest      | 75000.00 |
++------+------+------------+----------+
+7 rows in set (0.00 sec)
+
+mysql> select C.role
+    -> from Cast C
+    -> where C.pay > 60000;
++-------+
+| role  |
++-------+
+| Lead  |
+| Lead  |
+| Guest |
++-------+
+3 rows in set (0.01 sec)
+
+mysql> SELECT M.*
+    -> FROM Movie M
+    -> JOIN Direct Di ON M.m_id = Di.m_id
+    -> JOIN Director D ON Di.d_id = D.d_id
+    -> WHERE D.gender = 'F';
++------+------------+--------------+-------+
+| m_id | title      | release_date | rank1 |
++------+------------+--------------+-------+
+| 1056 | Ram_Lakhan | 1997-11-12   | B     |
+| 1987 | PK         | 2005-11-12   | A     |
++------+------------+--------------+-------+
+2 rows in set (0.00 sec)
+
+mysql> SELECT M.title, A.a_id, A.f_name, A.l_name, C.pay AS salary
+    -> FROM Movie M
+    -> JOIN Cast C ON M.m_id = C.m_id
+    -> JOIN Actor A ON C.a_id = A.a_id
+    -> WHERE C.pay = (
+    ->     SELECT MAX(C2.pay)
+    ->     FROM Cast C2
+    ->     WHERE C2.m_id = M.m_id
+    -> );
++------------+------+--------+--------+----------+
+| title      | a_id | f_name | l_name | salary   |
++------------+------+--------+--------+----------+
+| Sholay     |  505 | Ria    | Sharma | 75000.00 |
+| Dangal     |  512 | Priya  | Kumari | 45000.00 |
+| Ram_Lakhan |  509 | Mohan  | Kumar  | 60000.00 |
+| Laagan     |  512 | Priya  | Kumari | 45000.00 |
+| War        |  567 | Rohan  | Dhaiya | 70000.00 |
+| PK         |  505 | Ria    | Sharma | 75000.00 |
++------------+------+--------+--------+----------+
+6 rows in set (0.01 sec)
+
+mysql> SELECT *
+    -> FROM Movie NATURAL JOIN Direct NATURAL JOIN Director
+    -> WHERE fname = 'Fahad' AND lname = 'Khan';
++------+------+--------+--------------+-------+-------+-------+--------+
+| d_id | m_id | title  | release_date | rank1 | fname | lname | gender |
++------+------+--------+--------------+-------+-------+-------+--------+
+|  100 | 1001 | Sholay | 1975-08-15   | A     | Fahad | Khan  | M      |
+|  100 | 1345 | War    | 2015-08-24   | B     | Fahad | Khan  | M      |
++------+------+--------+--------------+-------+-------+-------+--------+
+2 rows in set (0.00 sec)
+
+mysql> SELECT A.a_id, A.f_name, A.l_name, DISTINCT_ROLES.role
+    -> FROM Actor A
+    -> CROSS JOIN (
+    ->     SELECT DISTINCT role FROM Cast
+    -> ) AS DISTINCT_ROLES;
++------+--------+--------+------------+
+| a_id | f_name | l_name | role       |
++------+--------+--------+------------+
+|  505 | Ria    | Sharma | Supporting |
+|  505 | Ria    | Sharma | Lead       |
+|  505 | Ria    | Sharma | Guest      |
+|  509 | Mohan  | Kumar  | Supporting |
+|  509 | Mohan  | Kumar  | Lead       |
+|  509 | Mohan  | Kumar  | Guest      |
+|  512 | Priya  | Kumari | Supporting |
+|  512 | Priya  | Kumari | Lead       |
+|  512 | Priya  | Kumari | Guest      |
+|  530 | Jagar  | Saini  | Supporting |
+|  530 | Jagar  | Saini  | Lead       |
+|  530 | Jagar  | Saini  | Guest      |
+|  567 | Rohan  | Dhaiya | Supporting |
+|  567 | Rohan  | Dhaiya | Lead       |
+|  567 | Rohan  | Dhaiya | Guest      |
++------+--------+--------+------------+
+15 rows in set (0.00 sec)
+
+mysql> SELECT M.*, D.*
+    -> FROM Movie M
+    -> LEFT JOIN Direct Di ON M.m_id = Di.m_id
+    -> LEFT JOIN Director D ON Di.d_id = D.d_id
+    -> WHERE YEAR(M.release_date) IN (2005, 2006);
++------+---------+--------------+-------+------+-------+---------+--------+
+| m_id | title   | release_date | rank1 | d_id | fname | lname   | gender |
++------+---------+--------------+-------+------+-------+---------+--------+
+| 1321 | Airlift | 2005-09-12   | A     | NULL | NULL  | NULL    | NULL   |
+| 1987 | PK      | 2005-11-12   | A     |  103 | Jyoti | Bhadwai | F      |
++------+---------+--------------+-------+------+-------+---------+--------+
+2 rows in set (0.00 sec)
+
+mysql> SELECT A.*
+    -> FROM Cast C
+    -> RIGHT JOIN Actor A ON C.a_id = A.a_id
+    -> LEFT JOIN Movie M ON C.m_id = M.m_id
+    -> WHERE (M.title <> 'Dangal' OR M.title IS NULL);
++------+--------+--------+-------+
+| a_id | f_name | l_name | Pay   |
++------+--------+--------+-------+
+|  505 | Ria    | Sharma | 75000 |
+|  505 | Ria    | Sharma | 75000 |
+|  509 | Mohan  | Kumar  | 60000 |
+|  509 | Mohan  | Kumar  | 60000 |
+|  512 | Priya  | Kumari | 45000 |
+|  530 | Jagar  | Saini  | 55000 |
+|  567 | Rohan  | Dhaiya | 70000 |
++------+--------+--------+-------+
+7 rows in set (0.00 sec)
+
+mysql> select a.*
+    -> from actor a
+    -> left join cast c on a.a_id = c.a_id
+    -> left join movie m on c.m_id = m.m_id
+    -> where m.title <> 'Mohan Kumar' or m.title is null;
+ERROR 1146 (42S02): Table 'movie.actor' doesn't exist
+mysql> select m.* 
+    -> ^C
+mysql> select a.*
+    -> from Actor a
+    -> left join Cast c on a.a_id = c.a_id
+    -> left join movie m on c.m_id = m.m_id
+    -> where m.title <> 'Mohan Kumar' or m.title is null;
+ERROR 1146 (42S02): Table 'movie.movie' doesn't exist
+mysql> select a.* from Actor a
+    -> left join Cast c on a.a_id = c.a_id
+    -> left join Movie m on c.m_id = m.m_id 
+    -> where m.title <> 'Mohan Kumar' or m.title is null;
++------+--------+--------+-------+
+| a_id | f_name | l_name | Pay   |
++------+--------+--------+-------+
+|  505 | Ria    | Sharma | 75000 |
+|  505 | Ria    | Sharma | 75000 |
+|  509 | Mohan  | Kumar  | 60000 |
+|  509 | Mohan  | Kumar  | 60000 |
+|  512 | Priya  | Kumari | 45000 |
+|  512 | Priya  | Kumari | 45000 |
+|  530 | Jagar  | Saini  | 55000 |
+|  567 | Rohan  | Dhaiya | 70000 |
++------+--------+--------+-------+
+8 rows in set (0.00 sec)
+
+mysql> select a.* from Actor a left join Cast c on a.a_id = c.a_id left join Movie m on c.m_id = m.m_id  where m.title <> 'Ria Sharma' or m.title is null;
++------+--------+--------+-------+
+| a_id | f_name | l_name | Pay   |
++------+--------+--------+-------+
+|  505 | Ria    | Sharma | 75000 |
+|  505 | Ria    | Sharma | 75000 |
+|  509 | Mohan  | Kumar  | 60000 |
+|  509 | Mohan  | Kumar  | 60000 |
+|  512 | Priya  | Kumari | 45000 |
+|  512 | Priya  | Kumari | 45000 |
+|  530 | Jagar  | Saini  | 55000 |
+|  567 | Rohan  | Dhaiya | 70000 |
++------+--------+--------+-------+
+8 rows in set (0.00 sec)
+
+mysql> select a.*
+    -> from Actor a
+    -> where not exists (
+    ->     select 1
+    ->     from Cast c
+    ->     join Movie m on c.m_id = m.m_id
+    ->     where c.a_id = a.a_id and m.title = 'Mohan Kumar'
+    -> );
++------+--------+--------+-------+
+| a_id | f_name | l_name | Pay   |
++------+--------+--------+-------+
+|  505 | Ria    | Sharma | 75000 |
+|  509 | Mohan  | Kumar  | 60000 |
+|  512 | Priya  | Kumari | 45000 |
+|  530 | Jagar  | Saini  | 55000 |
+|  567 | Rohan  | Dhaiya | 70000 |
++------+--------+--------+-------+
+5 rows in set (0.00 sec)
+
+mysql> select a.*
+    -> from Actor a 
+    -> left join Cast c on a.a_id = c.a_id 
+    -> left join Movie m on c.m_id = m.m_id  
+    -> where m.title <> 'Ria Sharma' or m.title is null;
++------+--------+--------+-------+
+| a_id | f_name | l_name | Pay   |
++------+--------+--------+-------+
+|  505 | Ria    | Sharma | 75000 |
+|  505 | Ria    | Sharma | 75000 |
+|  509 | Mohan  | Kumar  | 60000 |
+|  509 | Mohan  | Kumar  | 60000 |
+|  512 | Priya  | Kumari | 45000 |
+|  512 | Priya  | Kumari | 45000 |
+|  530 | Jagar  | Saini  | 55000 |
+|  567 | Rohan  | Dhaiya | 70000 |
++------+--------+--------+-------+
+8 rows in set (0.00 sec)
+
+mysql> select * 
+    -> ^C
+mysql> select m.*
+    -> from Movie m
+    -> where not exists (
+    ->     select 1
+    ->     from Cast c
+    ->     join Actor a on c.a_id = a.a_id
+    ->     where c.m_id = m.m_id and a.f_name = 'Ria' and a.l_name = 'Sharma'
+    -> );
++------+-------------+--------------+-------+
+| m_id | title       | release_date | rank1 |
++------+-------------+--------------+-------+
+| 1007 | Dangal      | 2012-06-22   | B     |
+| 1056 | Ram_Lakhan  | 1997-11-12   | B     |
+| 1231 | Laagan      | 1887-12-30   | A     |
+| 1321 | Airlift     | 2005-09-12   | A     |
+| 1345 | War         | 2015-08-24   | B     |
+| 2001 | Kabir Singh | 2019-06-21   | NULL  |
++------+-------------+--------------+-------+
+6 rows in set (0.00 sec)
+
+mysql> -- Movies not starring Ria Sharma
+mysql> select m.*, null as a_id, null as f_name, null as l_name, null as pay
+    -> from Movie m
+    -> where not exists (
+    ->     select 1
+    ->     from Cast c
+    ->     join Actor a on c.a_id = a.a_id
+    ->     where c.m_id = m.m_id and a.f_name = 'Ria' and a.l_name = 'Sharma'
+    -> )
+    -> 
+    -> union
+    -> 
+    -> -- Actors not casted in Mohan Kumar
+    -> select null as m_id, null as title, null as release_date, null as rank, null as budget,
+    ->        a.a_id, a.f_name, a.l_name, a.Pay
+    -> from Actor a
+    -> where not exists (
+    ->     select 1
+    ->     from Cast c
+    ->     join Movie m on c.m_id = m.m_id
+    ->     where c.a_id = a.a_id and m.title = 'Mohan Kumar'
+    -> );
+ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'rank, null as budget,
+       a.a_id, a.f_name, a.l_name, a.Pay
+from Actor a
+wher' at line 13
+mysql> select m.m_id, m.title, m.release_date, m.`rank`, m.budget, null as a_id, null as f_name, null as l_name, null as pay
+    -> from Movie m
+    -> where not exists (
+    ->     select 1
+    ->     from Cast c
+    ->     join Actor a on c.a_id = a.a_id
+    ->     where c.m_id = m.m_id and a.f_name = 'Ria' and a.l_name = 'Sharma'
+    -> )
+    -> union
+    -> select null as m_id, null as title, null as release_date, null as `rank`, null as budget, a.a_id, a.f_name, a.l_name, a.Pay
+    -> from Actor a
+    -> where not exists (
+    ->     select 1
+    ->     from Cast c
+    ->     join Movie m on c.m_id = m.m_id
+    ->     where c.a_id = a.a_id and m.title = 'Mohan Kumar'
+    -> );
+ERROR 1054 (42S22): Unknown column 'm.rank' in 'field list'
+mysql> select m.m_id, m.title, m.release_date, m.rank1, m.budget, null as a_id, null as f_name, null as l_name, null as pay
+    -> from Movie m
+    -> where not exists (
+    ->     select 1
+    ->     from Cast c
+    ->     join Actor a on c.a_id = a.a_id
+    ->     where c.m_id = m.m_id and a.f_name = 'Ria' and a.l_name = 'Sharma'
+    -> )
+    -> union
+    -> select null as m_id, null as title, null as release_date, null as rank1, null as budget, a.a_id, a.f_name, a.l_name, a.Pay
+    -> from Actor a
+    -> where not exists (
+    ->     select 1
+    ->     from Cast c
+    ->     join Movie m on c.m_id = m.m_id
+    ->     where c.a_id = a.a_id and m.title = 'Mohan Kumar'
+    -> );
+ERROR 1054 (42S22): Unknown column 'm.budget' in 'field list'
+mysql> select m.m_id, m.title, m.release_date, m.rank1, null as budget, null as a_id, null as f_name, null as l_name, null as pay
+    -> from Movie m
+    -> where not exists (
+    ->     select 1
+    ->     from Cast c
+    ->     join Actor a on c.a_id = a.a_id
+    ->     where c.m_id = m.m_id and a.f_name = 'Ria' and a.l_name = 'Sharma'
+    -> )
+    -> union
+    -> select null as m_id, null as title, null as release_date, null as rank1, null as budget, a.a_id, a.f_name, a.l_name, a.Pay
+    -> from Actor a
+    -> where not exists (
+    ->     select 1
+    ->     from Cast c
+    ->     join Movie m on c.m_id = m.m_id
+    ->     where c.a_id = a.a_id and m.title = 'Mohan Kumar'
+    -> );
++------+-------------+--------------+-------+----------------+------+--------+--------+-------+
+| m_id | title       | release_date | rank1 | budget         | a_id | f_name | l_name | pay   |
++------+-------------+--------------+-------+----------------+------+--------+--------+-------+
+| 1007 | Dangal      | 2012-06-22   | B     |            | NULL | NULL   | NULL   |  NULL |
+| 1056 | Ram_Lakhan  | 1997-11-12   | B     |            | NULL | NULL   | NULL   |  NULL |
+| 1231 | Laagan      | 1887-12-30   | A     |            | NULL | NULL   | NULL   |  NULL |
+| 1321 | Airlift     | 2005-09-12   | A     |            | NULL | NULL   | NULL   |  NULL |
+| 1345 | War         | 2015-08-24   | B     |            | NULL | NULL   | NULL   |  NULL |
+| 2001 | Kabir Singh | 2019-06-21   | NULL  |            | NULL | NULL   | NULL   |  NULL |
+| NULL | NULL        | NULL         | NULL  |            |  505 | Ria    | Sharma | 75000 |
+| NULL | NULL        | NULL         | NULL  |            |  509 | Mohan  | Kumar  | 60000 |
+| NULL | NULL        | NULL         | NULL  |            |  512 | Priya  | Kumari | 45000 |
+| NULL | NULL        | NULL         | NULL  |            |  530 | Jagar  | Saini  | 55000 |
+| NULL | NULL        | NULL         | NULL  |            |  567 | Rohan  | Dhaiya | 70000 |
++------+-------------+--------------+-------+----------------+------+--------+--------+-------+
+11 rows in set (0.00 sec)
+
