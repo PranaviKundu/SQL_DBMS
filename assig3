@@ -539,3 +539,32 @@ mysql> select m.m_id, m.title, m.release_date, m.rank1, null as budget, null as 
 +------+-------------+--------------+-------+----------------+------+--------+--------+-------+
 11 rows in set (0.00 sec)
 
+--1 to 6 not using join
+--2
+SELECT title, 
+       (SELECT CONCAT(fname, ' ', lname)
+        FROM Director d
+        WHERE d.d_id = dir.d_id) AS director_name
+FROM Movie m
+JOIN Direct dir ON m.m_id = dir.m_id
+WHERE YEAR(m.release_date) = 2019
+ORDER BY rank1 DESC
+LIMIT 5;
+
+--6
+SELECT *
+FROM Actor a
+WHERE a.a_id IN (
+    SELECT c.a_id
+    FROM Cast c
+    WHERE a.a_id = c.a_id
+      AND Pay = (
+          SELECT MAX(Pay)
+          FROM Cast c2
+          WHERE c2.m_id = c.m_id
+            AND c2.a_id IN (
+                SELECT a_id
+                FROM Actor
+            )
+      )
+);
