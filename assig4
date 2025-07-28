@@ -1,0 +1,338 @@
+mysql> create table Borrower( Roll_no INT, Name varchar(100), Dateofissue DATE, NameofBook varchar(300), Status char);
+ERROR 1050 (42S01): Table 'Borrower' already exists
+mysql> desc Borrower
+    -> ;
++-------------+--------------+------+-----+---------+-------+
+| Field       | Type         | Null | Key | Default | Extra |
++-------------+--------------+------+-----+---------+-------+
+| Roll_no     | int          | YES  |     | NULL    |       |
+| Name        | varchar(100) | YES  |     | NULL    |       |
+| Dateofissue | date         | YES  |     | NULL    |       |
+| NameofBook  | varchar(300) | YES  |     | NULL    |       |
+| Status      | char(1)      | YES  |     | NULL    |       |
++-------------+--------------+------+-----+---------+-------+
+5 rows in set (0.00 sec)
+
+mysql> creaate table Fine(
+    -> Roll_no int,
+    -> Date_ DATE,
+    -> Amt INT);
+ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'creaate table Fine(
+Roll_no int,
+Date_ DATE,
+Amt INT)' at line 1
+mysql> create table Fine( Roll_no int, Date_ DATE, Amt INT);
+Query OK, 0 rows affected (0.89 sec)
+
+mysql> drop Borrower;
+ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'Borrower' at line 1
+mysql> drop Borrower
+    -> ;
+ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'Borrower' at line 1
+mysql> drop table Borrower
+    -> ;
+Query OK, 0 rows affected (0.26 sec)
+
+mysql> CREATE TABLE Borrower (
+    ->     Roll_no NUMBER PRIMARY KEY,
+    ->     Name VARCHAR2(100),
+    ->     Dateofissue DATE,
+    ->     NameofBook VARCHAR2(100),
+    ->     Status VARCHAR2(1)
+    -> );
+ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'NUMBER PRIMARY KEY,
+    Name VARCHAR2(100),
+    Dateofissue DATE,
+    NameofBook' at line 2
+mysql> CREATE TABLE Borrower (
+    ->     Roll_no INT PRIMARY KEY,
+    ->     Name VARCHAR(100),
+    ->     Dateofissue DATE,
+    ->     NameofBook VARCHAR(100),
+    ->     Status CHAR(1)
+    -> );
+Query OK, 0 rows affected (0.38 sec)
+
+mysql> drop table Fine;
+Query OK, 0 rows affected (0.25 sec)
+
+mysql> CREATE TABLE Fine (
+    ->     Roll_no INT,
+    ->     Fine INT,
+    ->     FOREIGN KEY (Roll_no) REFERENCES Borrower(Roll_no)
+    -> );
+Query OK, 0 rows affected (1.06 sec)
+
+mysql> DELIMITER //
+mysql> 
+mysql> CREATE PROCEDURE CalculateFine(IN in_roll_no INT, IN in_book_name VARCHAR(100))
+    -> BEGIN
+    ->     DECLARE v_date_of_issue DATE;
+    ->     DECLARE v_days INT;
+    ->     DECLARE v_fine INT DEFAULT 0;
+    -> 
+    ->     -- Declare condition handler
+    ->     DECLARE CONTINUE HANDLER FOR NOT FOUND 
+    ->         BEGIN
+    ->             SELECT 'No such record found in Borrower table.' AS Message;
+    ->         END;
+    -> 
+    ->     -- Get date of issue
+    ->     SELECT Dateofissue INTO v_date_of_issue
+    ->     FROM Borrower
+    ->     WHERE Roll_no = in_roll_no AND NameofBook = in_book_name;
+    -> 
+    ->     -- Calculate number of days
+    ->     SET v_days = DATEDIFF(CURDATE(), v_date_of_issue);
+    -> 
+    ->     -- Calculate fine
+    ->     IF v_days BETWEEN 15 AND 30 THEN
+    ->         SET v_fine = v_days * 5;
+    ->     ELSEIF v_days > 30 THEN
+    ->         SET v_fine = v_days * 10;
+    ->     ELSE
+    ->         SELECT 'No fine applicable.' AS Message;
+    ->     END IF;
+    -> 
+    ->     -- Insert fine if applicable
+    ->     IF v_fine > 0 THEN
+    ->         INSERT INTO Fine (Roll_no, Fine)
+    ->         VALUES (in_roll_no, v_fine);
+    ->         SELECT CONCAT('Fine of Rs ', v_fine, ' added for Roll No: ', in_roll_no) AS Message;
+    ->     END IF;
+    -> END;
+    -> //
+Query OK, 0 rows affected (0.14 sec)
+
+mysql> 
+mysql> DELIMITER ;
+mysql> CALL CalculateFine(101, 'Database Systems');
++-----------------------------------------+
+| Message                                 |
++-----------------------------------------+
+| No such record found in Borrower table. |
++-----------------------------------------+
+1 row in set (0.00 sec)
+
++---------------------+
+| Message             |
++---------------------+
+| No fine applicable. |
++---------------------+
+1 row in set (0.00 sec)
+
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> DELIMITER //
+mysql> 
+mysql> CREATE PROCEDURE CalculateFine(IN in_roll_no INT, IN in_book_name VARCHAR(100))
+    -> BEGIN
+    ->     DECLARE v_date_of_issue DATE;
+    ->     DECLARE v_days INT;
+    ->     DECLARE v_fine INT DEFAULT 0;
+    -> 
+    ->     DECLARE EXIT HANDLER FOR NOT FOUND 
+    ->     BEGIN
+    ->         SELECT 'No such record found in Borrower table.' AS Message;
+    ->     END;
+    -> 
+    ->     proc_block: BEGIN
+    -> 
+    ->         -- Get date of issue
+    ->         SELECT Dateofissue INTO v_date_of_issue
+    ->         FROM Borrower
+    ->         WHERE Roll_no = in_roll_no AND NameofBook = in_book_name;
+    -> 
+    ->         -- Calculate number of days
+    ->         SET v_days = DATEDIFF(CURDATE(), v_date_of_issue);
+    -> 
+    ->         -- Calculate fine
+    ->         IF v_days BETWEEN 15 AND 30 THEN
+    ->             SET v_fine = v_days * 5;
+    ->         ELSEIF v_days > 30 THEN
+    ->             SET v_fine = v_days * 10;
+    ->         ELSE
+    ->             SELECT 'No fine applicable.' AS Message;
+    ->         END IF;
+    -> 
+    ->         -- Insert fine if applicable
+    ->         IF v_fine > 0 THEN
+    ->             INSERT INTO Fine (Roll_no, Fine)
+    ->             VALUES (in_roll_no, v_fine);
+    ->             SELECT CONCAT('Fine of Rs ', v_fine, ' added for Roll No: ', in_roll_no) AS Message;
+    ->         END IF;
+    -> 
+    ->     END proc_block;
+    -> END;
+    -> //
+ERROR 1304 (42000): PROCEDURE CalculateFine already exists
+mysql> 
+mysql> DELIMITER ;
+mysql> DROP PROCEDURE IF EXISTS CalculateFine;
+Query OK, 0 rows affected (0.12 sec)
+
+mysql> 
+mysql> DELIMITER //
+mysql> 
+mysql> CREATE PROCEDURE CalculateFine(IN in_roll_no INT, IN in_book_name VARCHAR(100))
+    -> BEGIN
+    ->     DECLARE v_date_of_issue DATE;
+    ->     DECLARE v_days INT;
+    ->     DECLARE v_fine INT DEFAULT 0;
+    -> 
+    ->     DECLARE EXIT HANDLER FOR NOT FOUND 
+    ->     BEGIN
+    ->         SELECT 'No such record found in Borrower table.' AS Message;
+    ->     END;
+    -> 
+    ->     proc_block: BEGIN
+    -> 
+    ->         -- Get date of issue
+    ->         SELECT Dateofissue INTO v_date_of_issue
+    ->         FROM Borrower
+    ->         WHERE Roll_no = in_roll_no AND NameofBook = in_book_name;
+    -> 
+    ->         -- Calculate number of days
+    ->         SET v_days = DATEDIFF(CURDATE(), v_date_of_issue);
+    -> 
+    ->         -- Calculate fine
+    ->         IF v_days BETWEEN 15 AND 30 THEN
+    ->             SET v_fine = v_days * 5;
+    ->         ELSEIF v_days > 30 THEN
+    ->             SET v_fine = v_days * 10;
+    ->         ELSE
+    ->             SELECT 'No fine applicable.' AS Message;
+    ->         END IF;
+    -> 
+    ->         -- Insert fine if applicable
+    ->         IF v_fine > 0 THEN
+    ->             INSERT INTO Fine (Roll_no, Fine)
+    ->             VALUES (in_roll_no, v_fine);
+    ->             SELECT CONCAT('Fine of Rs ', v_fine, ' added for Roll No: ', in_roll_no) AS Message;
+    ->         END IF;
+    -> 
+    ->     END proc_block;
+    -> END;
+    -> //
+Query OK, 0 rows affected (0.10 sec)
+
+mysql> 
+mysql> DELIMITER ;
+mysql> INSERT INTO Borrower 
+    -> VALUES (101, 'Rahul Sharma', '2025-06-25', 'Database Systems', 'I');
+Query OK, 1 row affected (0.08 sec)
+
+mysql> 
+mysql> -- Now run
+mysql> CALL CalculateFine(101, 'Database Systems');
++---------------------------------------+
+| Message                               |
++---------------------------------------+
+| Fine of Rs 330 added for Roll No: 101 |
++---------------------------------------+
+1 row in set (0.09 sec)
+
+Query OK, 0 rows affected (0.09 sec)
+
+mysql> INSERT INTO Borrower (Roll_no, Name, Dateofissue, NameofBook, Status) VALUES
+    -> (101, 'Rahul Sharma', '2025-06-10', 'Database Systems', 'I'),
+    -> (102, 'Anita Desai', '2025-07-01', 'Operating Systems', 'I'),
+    -> (103, 'Suresh Patil', '2025-07-15', 'Computer Networks', 'I'),
+    -> (104, 'Meera Joshi', '2025-06-01', 'Data Structures', 'I'),
+    -> (105, 'Rajesh Kumar', '2025-05-20', 'Algorithms', 'I');
+ERROR 1062 (23000): Duplicate entry '101' for key 'Borrower.PRIMARY'
+mysql> INSERT INTO Borrower (Roll_no, Name, Dateofissue, NameofBook, Status) VALUES
+    -> (106, 'Rahul Sharma', '2025-06-10', 'Database Systems', 'I'),
+    -> (102, 'Anita Desai', '2025-07-01', 'Operating Systems', 'I'),
+    -> (103, 'Suresh Patil', '2025-07-15', 'Computer Networks', 'I'),
+    -> (104, 'Meera Joshi', '2025-06-01', 'Data Structures', 'I'),
+    -> (105, 'Rajesh Kumar', '2025-05-20', 'Algorithms', 'I');
+Query OK, 5 rows affected (0.06 sec)
+Records: 5  Duplicates: 0  Warnings: 0
+
+mysql> desc Fine;
++---------+------+------+-----+---------+-------+
+| Field   | Type | Null | Key | Default | Extra |
++---------+------+------+-----+---------+-------+
+| Roll_no | int  | YES  | MUL | NULL    |       |
+| Fine    | int  | YES  |     | NULL    |       |
++---------+------+------+-----+---------+-------+
+2 rows in set (0.01 sec)
+
+mysql> INSERT INTO Fine (Roll_no, Fine) VALUES
+    -> (106, 50),
+    -> (102, 0),
+    -> (103, 30),
+    -> (104, 0),
+    -> (105, 100);
+Query OK, 5 rows affected (0.07 sec)
+Records: 5  Duplicates: 0  Warnings: 0
+
+mysql> SELECT b.Roll_no, b.Name, b.NameofBook, b.Dateofissue, b.Status,
+    ->        IFNULL(f.Fine, 0) AS Fine
+    -> FROM Borrower b
+    -> LEFT JOIN Fine f ON b.Roll_no = f.Roll_no;
++---------+--------------+-------------------+-------------+--------+------+
+| Roll_no | Name         | NameofBook        | Dateofissue | Status | Fine |
++---------+--------------+-------------------+-------------+--------+------+
+|     101 | Rahul Sharma | Database Systems  | 2025-06-25  | I      |  330 |
+|     102 | Anita Desai  | Operating Systems | 2025-07-01  | I      |    0 |
+|     103 | Suresh Patil | Computer Networks | 2025-07-15  | I      |   30 |
+|     104 | Meera Joshi  | Data Structures   | 2025-06-01  | I      |    0 |
+|     105 | Rajesh Kumar | Algorithms        | 2025-05-20  | I      |  100 |
+|     106 | Rahul Sharma | Database Systems  | 2025-06-10  | I      |   50 |
++---------+--------------+-------------------+-------------+--------+------+
+6 rows in set (0.00 sec)
+
+mysql> SELECT b.Roll_no, b.Name, b.NameofBook, f.Fine
+    -> FROM Borrower b
+    -> JOIN Fine f ON b.Roll_no = f.Roll_no
+    -> WHERE f.Fine > 0;
++---------+--------------+-------------------+------+
+| Roll_no | Name         | NameofBook        | Fine |
++---------+--------------+-------------------+------+
+|     101 | Rahul Sharma | Database Systems  |  330 |
+|     106 | Rahul Sharma | Database Systems  |   50 |
+|     103 | Suresh Patil | Computer Networks |   30 |
+|     105 | Rajesh Kumar | Algorithms        |  100 |
++---------+--------------+-------------------+------+
+4 rows in set (0.00 sec)
+
+mysql> SELECT b.Roll_no, b.Name, b.NameofBook
+    -> FROM Borrower b
+    -> LEFT JOIN Fine f ON b.Roll_no = f.Roll_no
+    -> WHERE f.Fine IS NULL OR f.Fine = 0;
++---------+-------------+-------------------+
+| Roll_no | Name        | NameofBook        |
++---------+-------------+-------------------+
+|     102 | Anita Desai | Operating Systems |
+|     104 | Meera Joshi | Data Structures   |
++---------+-------------+-------------------+
+2 rows in set (0.00 sec)
+
+mysql> SELECT b.Roll_no, b.Name, b.NameofBook, f.Fine
+    -> FROM Borrower b
+    -> JOIN Fine f ON b.Roll_no = f.Roll_no
+    -> ORDER BY f.Fine DESC;
++---------+--------------+-------------------+------+
+| Roll_no | Name         | NameofBook        | Fine |
++---------+--------------+-------------------+------+
+|     101 | Rahul Sharma | Database Systems  |  330 |
+|     105 | Rajesh Kumar | Algorithms        |  100 |
+|     106 | Rahul Sharma | Database Systems  |   50 |
+|     103 | Suresh Patil | Computer Networks |   30 |
+|     102 | Anita Desai  | Operating Systems |    0 |
+|     104 | Meera Joshi  | Data Structures   |    0 |
++---------+--------------+-------------------+------+
+6 rows in set (0.00 sec)
+
+mysql> SELECT COUNT(*) AS TotalFinedBorrowers
+    -> FROM Fine
+    -> WHERE Fine > 0;
++---------------------+
+| TotalFinedBorrowers |
++---------------------+
+|                   4 |
++---------------------+
+1 row in set (0.01 sec)
+
