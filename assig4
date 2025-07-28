@@ -336,3 +336,90 @@ mysql> SELECT COUNT(*) AS TotalFinedBorrowers
 +---------------------+
 1 row in set (0.01 sec)
 
+mysql> CALL CalculateFine(106, 'Database Systems');
++---------------------------------------+
+| Message                               |
++---------------------------------------+
+| Fine of Rs 480 added for Roll No: 106 |
++---------------------------------------+
+1 row in set (0.11 sec)
+
+Query OK, 0 rows affected (0.11 sec)
+
+mysql> DELIMITER //
+mysql> 
+mysql> CREATE PROCEDURE CalculateFineAll()
+    -> BEGIN
+    ->     DECLARE done INT DEFAULT FALSE;
+    ->     DECLARE v_roll_no INT;
+    ->     DECLARE v_book_name VARCHAR(100);
+    -> 
+    ->     DECLARE cur CURSOR FOR SELECT Roll_no, NameofBook FROM Borrower;
+    ->     DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+    -> 
+    ->     OPEN cur;
+    -> 
+    ->     read_loop: LOOP
+    ->         FETCH cur INTO v_roll_no, v_book_name;
+    ->         IF done THEN
+    ->             LEAVE read_loop;
+    ->         END IF;
+    -> 
+    ->         CALL CalculateFine(v_roll_no, v_book_name);
+    ->     END LOOP;
+    -> 
+    ->     CLOSE cur;
+    -> END;
+    -> //
+Query OK, 0 rows affected (0.09 sec)
+
+mysql> 
+mysql> DELIMITER ;
+mysql> 
+mysql> -- Call it once:
+mysql> CALL CalculateFineAll();
++---------------------------------------+
+| Message                               |
++---------------------------------------+
+| Fine of Rs 330 added for Roll No: 101 |
++---------------------------------------+
+1 row in set (0.05 sec)
+
++---------------------------------------+
+| Message                               |
++---------------------------------------+
+| Fine of Rs 135 added for Roll No: 102 |
++---------------------------------------+
+1 row in set (0.10 sec)
+
++---------------------+
+| Message             |
++---------------------+
+| No fine applicable. |
++---------------------+
+1 row in set (0.10 sec)
+
++---------------------------------------+
+| Message                               |
++---------------------------------------+
+| Fine of Rs 570 added for Roll No: 104 |
++---------------------------------------+
+1 row in set (0.24 sec)
+
++---------------------------------------+
+| Message                               |
++---------------------------------------+
+| Fine of Rs 690 added for Roll No: 105 |
++---------------------------------------+
+1 row in set (0.53 sec)
+
++---------------------------------------+
+| Message                               |
++---------------------------------------+
+| Fine of Rs 480 added for Roll No: 106 |
++---------------------------------------+
+1 row in set (0.63 sec)
+
+Query OK, 0 rows affected (0.63 sec)
+
+mysql> 
