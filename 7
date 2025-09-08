@@ -1,0 +1,173 @@
+mysql> CREATE DATABASE LibraryDB;
+Query OK, 1 row affected (0.12 sec)
+
+mysql> 
+mysql> -- Then, to use it:
+mysql> USE LibraryDB;
+Database changed
+mysql> CREATE TABLE Library (
+    ->     Book_ID       NUMBER PRIMARY KEY,
+    ->     Title         VARCHAR2(100),
+    ->     Author        VARCHAR2(100),
+    ->     Published_Year NUMBER
+    -> );
+ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'NUMBER PRIMARY KEY,
+    Title         VARCHAR2(100),
+    Author        VARCHAR2(' at line 2
+mysql> CREATE TABLE Library (
+    ->     Book_ID INT PRIMARY KEY,
+    ->     Title VARCHAR(100),
+    ->     Author VARCHAR(100),
+    ->     Published_Year INT
+    -> );
+Query OK, 0 rows affected (0.88 sec)
+
+mysql> CREATE TABLE Library_Audit (
+    ->     Audit_ID INT AUTO_INCREMENT PRIMARY KEY,
+    ->     Action_Type VARCHAR(10), -- 'UPDATE' or 'DELETE'
+    ->     Book_ID INT,
+    ->     Title VARCHAR(100),
+    ->     Author VARCHAR(100),
+    ->     Published_Year INT,
+    ->     Action_Date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    -> );
+Query OK, 0 rows affected (0.40 sec)
+
+mysql> DELIMITER $$
+mysql> 
+mysql> CREATE TRIGGER trg_library_after_update
+    -> AFTER UPDATE ON Library
+    -> FOR EACH ROW
+    -> BEGIN
+    ->     INSERT INTO Library_Audit (Action_Type, Book_ID, Title, Author, Published_Year)
+    ->     VALUES ('UPDATE', OLD.Book_ID, OLD.Title, OLD.Author, OLD.Published_Year);
+    -> END$$
+Query OK, 0 rows affected (0.15 sec)
+
+mysql> 
+mysql> DELIMITER ;
+mysql> DELIMITER $$
+mysql> 
+mysql> CREATE TRIGGER trg_library_after_delete
+    -> AFTER DELETE ON Library
+    -> FOR EACH ROW
+    -> BEGIN
+    ->     INSERT INTO Library_Audit (Action_Type, Book_ID, Title, Author, Published_Year)
+    ->     VALUES ('DELETE', OLD.Book_ID, OLD.Title, OLD.Author, OLD.Published_Year);
+    -> END$$
+Query OK, 0 rows affected (0.13 sec)
+
+mysql> 
+mysql> DELIMITER ;
+mysql> INSERT INTO Library (Book_ID, Title, Author, Published_Year)
+    -> VALUES (1, 'Clean Code', 'Robert Martin', 2008);
+Query OK, 1 row affected (0.06 sec)
+
+mysql> 
+mysql> INSERT INTO Library (Book_ID, Title, Author, Published_Year)
+    -> VALUES (2, 'The Pragmatic Programmer', 'Andrew Hunt', 1999);
+Query OK, 1 row affected (0.07 sec)
+
+mysql> UPDATE Library
+    -> SET Title = 'Clean Code - Revised Edition', Published_Year = 2010
+    -> WHERE Book_ID = 1;
+Query OK, 1 row affected (0.06 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+
+mysql> SELECT * FROM Library_Audit ORDER BY Audit_ID;
++----------+-------------+---------+------------+---------------+----------------+---------------------+
+| Audit_ID | Action_Type | Book_ID | Title      | Author        | Published_Year | Action_Date         |
++----------+-------------+---------+------------+---------------+----------------+---------------------+
+|        1 | UPDATE      |       1 | Clean Code | Robert Martin |           2008 | 2025-09-08 09:29:00 |
++----------+-------------+---------+------------+---------------+----------------+---------------------+
+1 row in set (0.00 sec)
+
+mysql> DELIMITER $$
+mysql> 
+mysql> CREATE TRIGGER trg_library_before_update
+    -> BEFORE UPDATE ON Library
+    -> FOR EACH ROW
+    -> BEGIN
+    ->     -- Example: Prevent changing Published_Year to a value less than 1900
+    ->     IF NEW.Published_Year < 1900 THEN
+    ->         SIGNAL SQLSTATE '45000'
+    ->         SET MESSAGE_TEXT = 'Published_Year cannot be less than 1900.';
+    ->     END IF;
+    -> 
+    ->     -- Optionally, you can log the old value before update, too
+    ->     INSERT INTO Library_Audit (Action_Type, Book_ID, Title, Author, Published_Year)
+    ->     VALUES ('BEFORE UPDATE', OLD.Book_ID, OLD.Title, OLD.Author, OLD.Published_Year);
+    -> END$$
+Query OK, 0 rows affected (0.10 sec)
+
+mysql> 
+mysql> DELIMITER ;
+mysql> DELIMITER $$
+mysql> 
+mysql> CREATE TRIGGER trg_library_before_delete
+    -> BEFORE DELETE ON Library
+    -> FOR EACH ROW
+    -> BEGIN
+    ->     -- Example: Prevent deletion if the book title is 'Clean Code'
+    ->     IF OLD.Title = 'Clean Code' THEN
+    ->         SIGNAL SQLSTATE '45000'
+    ->         SET MESSAGE_TEXT = 'Deletion of "Clean Code" is not allowed.';
+    ->     END IF;
+    -> 
+    ->     -- Optionally log old data before deletion
+    ->     INSERT INTO Library_Audit (Action_Type, Book_ID, Title, Author, Published_Year)
+    ->     VALUES ('BEFORE DELETE', OLD.Book_ID, OLD.Title, OLD.Author, OLD.Published_Year);
+    -> END$$
+Query OK, 0 rows affected (0.12 sec)
+
+mysql> 
+mysql> DELIMITER ;
+mysql> -- This will raise an error because Published_Year < 1900
+mysql> UPDATE Library SET Published_Year = 1800 WHERE Book_ID = 1;
+ERROR 1644 (45000): Published_Year cannot be less than 1900.
+mysql> 
+mysql> -- This will raise an error because deleting 'Clean Code' is restricted
+mysql> DELETE FROM Library WHERE Title = 'Clean Code';
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> DROP TRIGGER IF EXISTS trg_library_before_delete;
+Query OK, 0 rows affected (0.13 sec)
+
+mysql> DELIMITER $$
+mysql> 
+mysql> CREATE TRIGGER trg_library_before_delete
+    -> BEFORE DELETE ON Library
+    -> FOR EACH ROW
+    -> BEGIN
+    ->     IF OLD.Title = 'Clean Code' THEN
+    ->         SIGNAL SQLSTATE '45000'
+    ->         SET MESSAGE_TEXT = 'Deletion of "Clean Code" is not allowed.';
+    ->     END IF;
+    -> 
+    ->     INSERT INTO Library_Audit (Action_Type, Book_ID, Title, Author, Published_Year)
+    ->     VALUES ('BEFORE DELETE', OLD.Book_ID, OLD.Title, OLD.Author, OLD.Published_Year);
+    -> END$$
+Query OK, 0 rows affected (0.10 sec)
+
+mysql> 
+mysql> DELIMITER ;
+mysql> DELETE FROM Library WHERE Title = 'Clean Code';
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> SELECT * FROM Library_Audit ORDER BY Audit_ID;
++----------+-------------+---------+------------+---------------+----------------+---------------------+
+| Audit_ID | Action_Type | Book_ID | Title      | Author        | Published_Year | Action_Date         |
++----------+-------------+---------+------------+---------------+----------------+---------------------+
+|        1 | UPDATE      |       1 | Clean Code | Robert Martin |           2008 | 2025-09-08 09:29:00 |
++----------+-------------+---------+------------+---------------+----------------+---------------------+
+1 row in set (0.00 sec)
+
+mysql> SELECT * FROM Library_Audit
+    -> ORDER BY Action_Date DESC;
++----------+-------------+---------+------------+---------------+----------------+---------------------+
+| Audit_ID | Action_Type | Book_ID | Title      | Author        | Published_Year | Action_Date         |
++----------+-------------+---------+------------+---------------+----------------+---------------------+
+|        1 | UPDATE      |       1 | Clean Code | Robert Martin |           2008 | 2025-09-08 09:29:00 |
++----------+-------------+---------+------------+---------------+----------------+---------------------+
+1 row in set (0.00 sec)
+
