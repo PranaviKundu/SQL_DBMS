@@ -1,0 +1,200 @@
+(base) csl4@csl4-HP-280-G3-MT:~$ mongosh
+Current Mongosh Log ID:	68be5216d2909c2e13fa334f
+Connecting to:		mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+2.5.7
+Using MongoDB:		7.0.23
+Using Mongosh:		2.5.7
+
+For mongosh info see: https://www.mongodb.com/docs/mongodb-shell/
+
+------
+   The server generated these startup warnings when booting
+   2025-09-08T08:54:10.340+05:30: Using the XFS filesystem is strongly recommended with the WiredTiger storage engine. See http://dochub.mongodb.org/core/prodnotes-filesystem
+   2025-09-08T08:54:13.460+05:30: Access control is not enabled for the database. Read and write access to data and configuration is unrestricted
+   2025-09-08T08:54:13.461+05:30: vm.max_map_count is too low
+------
+
+Warning: Found ~/.mongorc.js, but not ~/.mongoshrc.js. ~/.mongorc.js will not be loaded.
+  You may want to copy or rename ~/.mongorc.js to ~/.mongoshrc.js.
+test> usecollegeDB
+ReferenceError: usecollegeDB is not defined
+test> use collegeDB
+... 
+switched to db collegeDB
+collegeDB> db.students.insertMany([
+...   { name: "Anjali", age: 20, course: "Biology", grade: "A" },
+...   { name: "Rahul", age: 21, course: "Math", grade: "B" },
+...   { name: "Sneha", age: 22, course: "Physics", grade: "A" }
+... ])
+... 
+{
+  acknowledged: true,
+  insertedIds: {
+    '0': ObjectId('68be575cd2909c2e13fa3350'),
+    '1': ObjectId('68be575cd2909c2e13fa3351'),
+    '2': ObjectId('68be575cd2909c2e13fa3352')
+  }
+}
+collegeDB> db.student.find().pretty()
+
+collegeDB> db.students.find().pretty()
+... 
+[
+  {
+    _id: ObjectId('68be575cd2909c2e13fa3350'),
+    name: 'Anjali',
+    age: 20,
+    course: 'Biology',
+    grade: 'A'
+  },
+  {
+    _id: ObjectId('68be575cd2909c2e13fa3351'),
+    name: 'Rahul',
+    age: 21,
+    course: 'Math',
+    grade: 'B'
+  },
+  {
+    _id: ObjectId('68be575cd2909c2e13fa3352'),
+    name: 'Sneha',
+    age: 22,
+    course: 'Physics',
+    grade: 'A'
+  }
+]
+collegeDB> db.students.find({ grade: "A" }).pretty()
+... 
+[
+  {
+    _id: ObjectId('68be575cd2909c2e13fa3350'),
+    name: 'Anjali',
+    age: 20,
+    course: 'Biology',
+    grade: 'A'
+  },
+  {
+    _id: ObjectId('68be575cd2909c2e13fa3352'),
+    name: 'Sneha',
+    age: 22,
+    course: 'Physics',
+    grade: 'A'
+  }
+]
+collegeDB> db.students.find({ grade: "A" }).pretty()
+... 
+[
+  {
+    _id: ObjectId('68be575cd2909c2e13fa3350'),
+    name: 'Anjali',
+    age: 20,
+    course: 'Biology',
+    grade: 'A'
+  },
+  {
+    _id: ObjectId('68be575cd2909c2e13fa3352'),
+    name: 'Sneha',
+    age: 22,
+    course: 'Physics',
+    grade: 'A'
+  }
+]
+collegeDB> db.students.find({ age: { $gt: 20 }, grade: "A" }).pretty()
+... 
+[
+  {
+    _id: ObjectId('68be575cd2909c2e13fa3352'),
+    name: 'Sneha',
+    age: 22,
+    course: 'Physics',
+    grade: 'A'
+  }
+]
+collegeDB> db.students.find({
+...   $or: [
+...     { grade: "A" },
+...     { course: "Math" }
+...   ]
+... }).pretty()
+... 
+[
+  {
+    _id: ObjectId('68be575cd2909c2e13fa3350'),
+    name: 'Anjali',
+    age: 20,
+    course: 'Biology',
+    grade: 'A'
+  },
+  {
+    _id: ObjectId('68be575cd2909c2e13fa3351'),
+    name: 'Rahul',
+    age: 21,
+    course: 'Math',
+    grade: 'B'
+  },
+  {
+    _id: ObjectId('68be575cd2909c2e13fa3352'),
+    name: 'Sneha',
+    age: 22,
+    course: 'Physics',
+    grade: 'A'
+  }
+]
+collegeDB> db.students.findOne({ name: "Rahul" })
+... 
+{
+  _id: ObjectId('68be575cd2909c2e13fa3351'),
+  name: 'Rahul',
+  age: 21,
+  course: 'Math',
+  grade: 'B'
+}
+collegeDB> db.students.updateOne(
+...   { name: "Rahul" },          // Filter: which document(s) to update
+...   { $set: { grade: "A+" } }   // Update operation: set grade to "A+"
+... )
+... 
+{
+  acknowledged: true,
+  insertedId: null,
+  matchedCount: 1,
+  modifiedCount: 1,
+  upsertedCount: 0
+}
+collegeDB> db.students.replaceOne(
+...   { name: "Anjali" },
+...   { name: "Anjali", age: 21, course: "Chemistry", grade: "A" }
+... )
+... 
+{
+  acknowledged: true,
+  insertedId: null,
+  matchedCount: 1,
+  modifiedCount: 1,
+  upsertedCount: 0
+}
+collegeDB> db.students.deleteOne({ name: "Rahul" })
+... 
+{ acknowledged: true, deletedCount: 1 }
+collegeDB> db.students.find({}, { name: 1, course: 1, _id: 0 }).pretty()
+... 
+[
+  { name: 'Anjali', course: 'Chemistry' },
+  { name: 'Sneha', course: 'Physics' }
+]
+collegeDB> db.students.find().sort({ age: -1 }).pretty()
+... 
+[
+  {
+    _id: ObjectId('68be575cd2909c2e13fa3352'),
+    name: 'Sneha',
+    age: 22,
+    course: 'Physics',
+    grade: 'A'
+  },
+  {
+    _id: ObjectId('68be575cd2909c2e13fa3350'),
+    name: 'Anjali',
+    age: 21,
+    course: 'Chemistry',
+    grade: 'A'
+  }
+]
